@@ -9,8 +9,6 @@ export const DetailsScreen = ({route}) => {
     `@pokeDex_details_${name}`,
   );
 
-  console.log(detailsSource);
-
   if (!detailsSource) return <ActivityIndicator />;
 
   return (
@@ -22,14 +20,15 @@ export const DetailsScreen = ({route}) => {
         style={styles.image}
       />
       <Text>{name}</Text>
-      <Text>ELO</Text>
-      {/* {detailsSource.stats.map((item, index) => (
+
+      {detailsSource.stats.map((item, index) => (
         <View key={index}>
           <Text>
             {item.stat.name.toUpperCase()}: {item.base_stat}
           </Text>
+          <AnimatedBar value={item.base_stat} />
         </View>
-      ))} */}
+      ))}
     </View>
   );
 };

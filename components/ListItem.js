@@ -1,30 +1,56 @@
 import React, {useEffect, useState} from 'react';
 import {
-  StyleSheet,
   TouchableOpacity,
   Text,
+  StyleSheet,
+  Image,
   Alert,
   ActivityIndicator,
-  Image,
 } from 'react-native';
+
+import AsyncStorage from '@react-native-community/async-storage'; //
+import 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'; //
 import {fetchPokemonImage} from '../apiService';
+
+import {fetchPokemonDetails} from '../apiService'; //
+import {useAsyncStorage} from '../hooks/useAsyncStorage'; //
+
+const AbortController = window.AbortController;
 
 export const ListItem = ({item, index, isRefreshing, navigation}) => {
   const [pokemon, setPokemon] = useState(null);
 
+  const [details, setDetails] = useState([]); //
+  const [isLoading, setIsLoading] = useState(true); //
+  const [detailsSource, setDetailsSource] = useAsyncStorage(
+    `@pokeDex_details_${item.name}`,
+  ); //
+
   useEffect(() => {
-    // const controller = new AbortController();
-    // const signal = controller.signal;
     (async () => {
-      // const response = await fetchPokemonImage(item.url, signal);
-      const response = await fetchPokemonImage(item.url);
-      setPokemon(response);
+      const controller = new AbortController(); //
+      const signal = controller.signal; //
+      setIsLoading(true); //
+      const pokemonDetails = await AsyncStorage.getItem(
+        `@pokeDex_details_${item.name}`,
+      ); //
+
+      if (pokemonDetails == null) {
+        const response = await fetchPokemonDetails(item.url, signal);
+        setDetailsSource(response);
+      }
+      setDetails(detailsSource);
+      setIsLoading(false);
+
+      return () => controller.abort();
     })();
-    // return () => controller.abort();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailsSource]);
+
+  const isActive = !isLoading && details != null;
 
   const renderDetails = () => {
-    if (!pokemon) {
+    if (!isActive) {
       return <ActivityIndicator size="small" />;
     }
 
@@ -32,10 +58,10 @@ export const ListItem = ({item, index, isRefreshing, navigation}) => {
       <>
         <Image
           style={styles.image}
-          source={{uri: pokemon.sprites.front_default}}
+          source={{uri: details.sprites.front_default}}
         />
         <Text style={styles.text}>{item.name}</Text>
-        <Text>{pokemon.id}</Text>
+        <Text>{item.id}</Text>
       </>
     );
   };

@@ -9,3 +9,9 @@ export const fetchPokemonImage = async url => {
   const data = await response.json();
   return data;
 };
+
+export const fetchPokemonDetails = async (url, signal) => {
+  const response = await fetch(url, {signal});
+  const data = await response.json();
+  return data;
+};
